@@ -2,7 +2,7 @@
 // @name         LHR time calculator
 // @description  Calculate time sum of time entries and days, including sum of the current day bookings and projected end of working day, in "LHR SelfService".
 // @namespace    https://github.com/akoessler/userscripts
-// @version      2.0
+// @version      2.1
 // @author       akoessler
 // @match        https://lohnselfservice/Self/zeiterfassung/*
 // @grant        none
@@ -12,18 +12,36 @@
 
 // Changelog:
 // - 2.0    2024-06-15  Move to new github repository
+// - 2.1    2024-06-15  Fix problems introduced in 2.0 with strict comparison using let
 
-function formatAsTime(minutes) {
+// eslint-disable-next-line no-unused-vars
+function log(text) {
+  //console.log(text);
+}
+
+function error(text) {
+  console.error("ERROR in userscript: " + text);
+}
+
+function formatAsTime(totalMinutes) {
+  if (isNaN(totalMinutes)) {
+    error("TotalMinutes is not a number: " + totalMinutes);
+    return "NaN";
+  }
+
+  let hours = 100 + Math.floor(totalMinutes / 60);
+  let minutes = 100 + Math.floor(totalMinutes % 60);
+
   let time = "";
-  time += String(100 + Math.floor(minutes / 60)).substring(1);
+  time += String(hours).substring(1);
   time += ":";
-  time += String(100 + Math.floor(minutes % 60)).substring(1);
+  time += String(minutes).substring(1);
   return time;
 }
 
 function calculate() {
   "use strict";
-  let table, rows, row, timeSumMinutes;
+  let table, rows, row, timeSumMinutes = 0;
 
   table = $("table.tabelle").first();
   rows = table.children("tbody").children("tr");
@@ -31,10 +49,12 @@ function calculate() {
   rows.each(function () {
     row = $(this);
 
-    if (row.attr("data-zdl-aus-zeile") === 1) {
+    if (row.attr("data-zdl-aus-zeile") === "1") {
       // a new day begins
       timeSumMinutes = 0;
+      log("$$$ reset day");
     }
+    log("$$$ timeSumMinutes: " + timeSumMinutes);
 
     let timeElement1 = row.children("td.td_zeitdaten").children("span.td_text1_isDate").children("a").first();
     let timeElement2 = row.children("td.td_zeitdaten").children("span.td_text2_isDate").children("a").first();
@@ -54,13 +74,15 @@ function calculate() {
     }
 
     let timesplit1 = time1.replace(/[^0-9:]/gi, "").split(":");
-    console.log(timesplit1);
+    log("$$$ timesplit 1: " + timesplit1);
     let timesplit2 = time2.replace(/[^0-9:]/gi, "").split(":");
+    log("$$$ timesplit 2: " + timesplit2);
     let minsToday1 = parseInt(timesplit1[0], 10) * 60 + parseInt(timesplit1[1], 10);
     let minsToday2 = parseInt(timesplit2[0], 10) * 60 + parseInt(timesplit2[1], 10);
     let minsdiff = minsToday2 - minsToday1;
-
+    log("$$$ minsdiff: " + minsdiff);
     timeSumMinutes += minsdiff;
+    log("$$$ timeSumMinutes: " + timeSumMinutes);
 
     let isLastRowOfDay = false;
     if (row.attr("data-zdl-aus-zeile") === row.attr("data-zdl-aus-anz-zeilen-tag")) {
