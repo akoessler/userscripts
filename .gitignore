@@ -1,0 +1,15 @@
+# environment
+.env
+
+# lockfiles
+package-lock.json
+
+# Build
+node_modules/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
