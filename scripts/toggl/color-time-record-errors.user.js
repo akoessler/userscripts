@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Toggl: Color time errors
 // @description  Colors errornous time entries in Toggl timer. Inconsecutive entries are colored blue, days with over 10 hours are colored orange, days with over 20 hours are colored red.
-// @namespace    https://github.com/akoessler/userscripts
+// @namespace    https://gist.github.com/akoessler/
 // @version      2.0
 // @author       akoessler
 // @match        https://track.toggl.com/timer
